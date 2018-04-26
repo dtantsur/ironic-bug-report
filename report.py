@@ -26,17 +26,20 @@ def log(*items):
 
 
 def is_bug(story):
-    tags = story.get('tags', [])
-    return (story.get('is_bug', True) and 'rfe' not in tags and
-            'rfe-approved' not in tags)
+    assert 'tags' in story, list(story)
+    return (story.get('is_bug', True) and 'rfe' not in story['tags'] and
+            'rfe-approved' not in story['tags'])
 
 
 def find_worklist(board, list_id):
     for lane in board.get('lanes', ()):
         if lane.get('list_id') == list_id:
-            return lane.get('worklist')
+            items = lane['worklist']['items']
+            break
+    else:
+        raise RuntimeError('Cannot find list %d in the board' % list_id)
 
-    raise RuntimeError('Cannot find list %d in the board' % list_id)
+    return [item['story'] for item in items if 'story' in item]
 
 
 def main():
@@ -63,15 +66,14 @@ def stats():
     board = get('/boards/%d' % IRONIC_TRIAGING_BOARD)
 
     bugs = list(filter(is_bug, stories))
-    untriaged = find_worklist(board, UNTRIAGED_LIST)
-    untriaged = list(filter(is_bug, untriaged['items']))
+    untriaged = list(filter(is_bug, find_worklist(board, UNTRIAGED_LIST)))
     print('Total bugs:', len(bugs))
     print(' of them untriaged:', len(untriaged))
 
     rfes = list(itertools.filterfalse(is_bug, stories))
     new_rfes = find_worklist(board, NEW_RFES_LIST)
     print('Total RFEs:', len(rfes))
-    print(' of them untriaged:', len(new_rfes['items']))
+    print(' of them untriaged:', len(new_rfes))
 
 
 if __name__ == '__main__':

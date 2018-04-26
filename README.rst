@@ -12,6 +12,6 @@ Usage::
     Fetching stories from group 75
     Fetching stories from board 67
     Total bugs: 285
-     of them untriaged: 420
+     of them untriaged: 260
     Total RFEs: 246
      of them untriaged: 36
