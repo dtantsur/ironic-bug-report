@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
 import argparse
-import itertools
 import sys
 
 import requests
 
 
 ROOT = "https://storyboard.openstack.org/api/v1"
-IRONIC_GROUP = 75
-IRONIC_TRIAGING_BOARD = 67
-UNTRIAGED_LIST = 284
-NEW_RFES_LIST = 286
+
+# NOTE(etingof): keep this in-sync with https://storyboard.openstack.org/#!/board/83
+IRONIC_TRIAGING_BOARD = 83
+TRIAGED_BUGS_LIST = 349
+UNTRIAGED_BUGS_LIST = 350
+TRIAGED_RFES_LIST = 351
+UNTRIAGED_RFES_LIST = 348
 
 
 def get(path):
@@ -23,12 +25,6 @@ def get(path):
 
 def log(*items):
     print(*items, file=sys.stderr)
-
-
-def is_bug(story):
-    assert 'tags' in story, list(story)
-    return (story.get('is_bug', True) and 'rfe' not in story['tags'] and
-            'rfe-approved' not in story['tags'])
 
 
 def find_worklist(board, list_id):
@@ -60,21 +56,20 @@ def main():
 
 
 def stats():
-    log('Fetching stories from group', IRONIC_GROUP)
-    stories = get('/stories?project_group_id=%d&status=active' % IRONIC_GROUP)
     log('Fetching stories from board', IRONIC_TRIAGING_BOARD)
     board = get('/boards/%d' % IRONIC_TRIAGING_BOARD)
 
-    bugs = list(filter(is_bug, stories))
-    untriaged = list(filter(is_bug, find_worklist(board, UNTRIAGED_LIST)))
-    print('Total bugs:', len(bugs))
-    print(' of them untriaged:', len(untriaged))
+    triaged_bugs = find_worklist(board, TRIAGED_BUGS_LIST)
+    untriaged_bugs = find_worklist(board, UNTRIAGED_BUGS_LIST)
+    triaged_rfes = find_worklist(board, TRIAGED_RFES_LIST)
+    untriaged_rfes = find_worklist(board, UNTRIAGED_RFES_LIST)
 
-    rfes = list(itertools.filterfalse(is_bug, stories))
-    new_rfes = find_worklist(board, NEW_RFES_LIST)
-    print('Total RFEs:', len(rfes))
-    print(' of them untriaged:', len(new_rfes))
+    print('Total bugs:', len(triaged_bugs) + len(untriaged_bugs))
+    print(' of them untriaged:', len(untriaged_bugs))
+    print('Total RFEs:', len(triaged_rfes) + len(untriaged_rfes))
+    print(' of them untriaged:', len(untriaged_rfes))
 
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
