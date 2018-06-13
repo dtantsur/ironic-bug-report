@@ -64,10 +64,14 @@ def stats():
     triaged_rfes = find_worklist(board, TRIAGED_RFES_LIST)
     untriaged_rfes = find_worklist(board, UNTRIAGED_RFES_LIST)
 
-    print('Total bugs:', len(triaged_bugs) + len(untriaged_bugs))
-    print(' of them untriaged:', len(untriaged_bugs))
-    print('Total RFEs:', len(triaged_rfes) + len(untriaged_rfes))
-    print(' of them untriaged:', len(untriaged_rfes))
+    print('Total bugs: %d' % (len(triaged_bugs) + len(untriaged_bugs)))
+    print(' of them untriaged: %d (%.1f%%)' % (
+        len(untriaged_bugs),
+        len(untriaged_bugs) * 100. / (len(triaged_bugs) + len(untriaged_bugs))))
+    print('Total RFEs: %d' % (len(triaged_rfes) + len(untriaged_rfes)))
+    print(' of them untriaged: %d (%.1f%%)' % (
+        len(untriaged_rfes),
+        len(untriaged_rfes) * 100. / (len(triaged_rfes) + len(untriaged_rfes))))
 
     return 0
 
